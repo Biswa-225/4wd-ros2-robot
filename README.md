@@ -4,7 +4,16 @@
 
 ![ROS2](https://img.shields.io/badge/ROS2-Humble-blue?style=for-the-badge&logo=ros)
 ![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%204-red?style=for-the-badge&logo=raspberry-pi)
+![OS](https://img.shields.io/badge/OS-Ubuntu%2022.04-orange?style=for-the-badge&logo=ubuntu)
 ![Python](https://img.shields.io/badge/Python-3.10-yellow?style=for-the-badge&logo=python)
+![STM32](https://img.shields.io/badge/MCU-STM32F103-blue?style=for-the-badge)
+![Lidar](https://img.shields.io/badge/Lidar-LD19-purple?style=for-the-badge)
+![Nav2](https://img.shields.io/badge/Nav2-Navigation-brightgreen?style=for-the-badge)
+![SLAM](https://img.shields.io/badge/SLAM-slam__toolbox-yellow?style=for-the-badge)
+![YAML](https://img.shields.io/badge/YAML-Config-lightgrey?style=for-the-badge&logo=yaml)
+![URDF](https://img.shields.io/badge/URDF-Robot%20Model-orange?style=for-the-badge)
+![C++](https://img.shields.io/badge/C++-STM32%20Firmware-blue?style=for-the-badge&logo=cplusplus)
+![CMake](https://img.shields.io/badge/CMake-Build-red?style=for-the-badge&logo=cmake)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 **A fully autonomous 4WD differential drive robot built with ROS2 Humble, featuring SLAM mapping, AMCL localization and Nav2 autonomous navigation.**
