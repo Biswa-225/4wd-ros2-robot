@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🤖 4WD Differential Drive Robot — ROS2 Humble
 **Board:** Yahboom YB-ERF01-V1.0 (STM32F103RCT6 + MPU9250 IMU)  
 **SBC:** Raspberry Pi 4 (Ubuntu 22.04)  
@@ -238,3 +239,7 @@ export ROS_DOMAIN_ID=0
 ---
 
 *Last updated: April 29, 2026*
+=======
+# 4wd-ros2-robot
+4WD Differential Drive Robot with ROS2 Humble, SLAM and Nav2
+>>>>>>> c6eeacf63af48de6cb29e3bea1b9d689c2c80263
