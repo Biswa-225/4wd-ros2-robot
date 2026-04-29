@@ -40,9 +40,9 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='base_link_to_base_laser',
             arguments=[
-                '--x', '0.012548',
+                '--x', '0.055',
                 '--y', '0',
-                '--z', '0.18',
+                '--z', '0.130',
                 '--roll', '0',
                 '--pitch', '0',
                 '--yaw', '0',
