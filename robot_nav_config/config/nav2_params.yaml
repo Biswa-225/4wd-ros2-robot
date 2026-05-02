@@ -1,0 +1,247 @@
+# Main Nav2 tuning file for the Yahboom 4WD robot.
+# Frame chain expected by Nav2:
+#   map -> odom -> base_link -> base_laser
+# For movement tuning, start in controller_server -> FollowPath.
+
+bt_navigator:
+  ros__parameters:
+    # Real robot, not simulation.
+    use_sim_time: false
+    # map is the fixed global frame from map_server/AMCL.
+    global_frame: map
+    # base_link is the robot body frame from the URDF.
+    robot_base_frame: base_link
+    # /odom comes from scripts/odom_publisher.py.
+    odom_topic: /odom
+    # Behavior tree tick period in milliseconds.
+    bt_loop_duration: 10
+    # Timeout for BT server calls.
+    default_server_timeout: 20
+    # Behavior tree XML for single-goal navigation.
+    default_nav_to_pose_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_w_recovery_and_replanning_only_if_path_becomes_invalid.xml"
+    # Behavior tree XML for multi-pose navigation from RViz waypoint mode.
+    default_nav_through_poses_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
+
+controller_server:
+  ros__parameters:
+    use_sim_time: false
+    # Local controller update rate. 20 Hz is a good starting point for small robots.
+    controller_frequency: 20.0
+    # Velocity values below these are treated as zero by Nav2.
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    # Progress checker decides if robot is stuck.
+    progress_checker_plugins: ["progress_checker"]
+    # Goal checker decides when the robot has reached the target pose.
+    goal_checker_plugins: ["goal_checker"]
+    # DWB local planner plugin name.
+    controller_plugins: ["FollowPath"]
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      # Robot must move at least this far within movement_time_allowance.
+      required_movement_radius: 0.03
+      movement_time_allowance: 20.0
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      # Position tolerance in meters. Higher value means easier goal completion.
+      xy_goal_tolerance: 0.15
+      # 6.28 means yaw is almost ignored at the final goal.
+      yaw_goal_tolerance: 6.28
+      stateful: false
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      # true prints extra trajectory scoring details in logs.
+      debug_trajectory_details: true
+      # Forward velocity limits. Increase carefully if robot needs more push.
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.10 #0.07 #0.05 #0.08 #0.15
+      # Differential drive robot cannot strafe sideways.
+      max_vel_y: 0.0
+      # Maximum turning speed in rad/s.
+      max_vel_theta: 0.55 #0.45
+      # Minimum/maximum translational speed sampled by DWB.
+      min_speed_xy: 0.0
+      max_speed_xy: 0.10 #0.07 #0.05 #0.15
+      # Minimum rotation speed sampled by DWB.
+      min_speed_theta: 0.18 #0.12
+      # Acceleration/deceleration limits. Higher values help overcome static friction.
+      acc_lim_x: 0.3 #0.2 #0.3 #0.8
+      acc_lim_y: 0.0
+      acc_lim_theta: 1.2 #0.8
+      decel_lim_x: -0.4 #-0.2 #-0.8
+      decel_lim_y: 0.0
+      decel_lim_theta: -1.2 #-0.8
+      # Number of velocity samples DWB evaluates each cycle.
+      vx_samples: 20
+      vy_samples: 5
+      vtheta_samples: 20
+      # How far into the future each candidate trajectory is simulated.
+      sim_time: 1.0 #1.7
+      # Step size used while simulating trajectories.
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      xy_goal_tolerance: 0.15
+      # Robot is considered stopped below this translational velocity.
+      trans_stopped_velocity: 0.01
+      # Stop scoring a trajectory after it becomes clearly bad.
+      short_circuit_trajectory_evaluation: true
+      # DWB critics score safety, path tracking, and goal approach.
+      critics: ["Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      # Obstacle penalty from local costmap.
+      BaseObstacle.scale: 0.02
+      # Encourage robot heading to align with the global path.
+      PathAlign.scale: 12.0
+      PathAlign.forward_point_distance: 0.1
+      # Encourage robot heading to align with final goal direction.
+      GoalAlign.scale: 8.0
+      GoalAlign.forward_point_distance: 0.1
+      # Encourage robot to stay near the planned path and move toward goal.
+      PathDist.scale: 32.0
+      GoalDist.scale: 36.0
+
+planner_server:
+  ros__parameters:
+    use_sim_time: false
+    planner_plugins: ["GridBased"]
+    GridBased:
+      # Navfn creates a global path on the occupancy/costmap grid.
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      # Allows the planner to find a path close to the requested goal if exact cell is hard.
+      tolerance: 0.15
+      # A* usually gives efficient paths on grid maps.
+      use_astar: true
+      # Permit planning through unknown cells if the map has unobserved space.
+      allow_unknown: true
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: false
+    # Recovery behaviors available to the behavior tree.
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: false
+      # Local costmap follows odom, so it moves with the robot.
+      global_frame: odom
+      # Local obstacle updates should be fast for reactive control.
+      update_frequency: 10.0
+      publish_frequency: 10.0
+      # Local costmap uses live obstacles and inflation only.
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        # Use LD19 LaserScan as the obstacle source.
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          # Ignore lidar returns too close to the robot body.
+          obstacle_min_range: 0.12
+          # clearing removes old obstacles; marking adds new obstacles.
+          clearing: true
+          marking: true
+          data_type: "LaserScan"
+          expected_update_rate: 0.0
+          observation_persistence: 0.0
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        # Small inflation keeps paths usable in a tight indoor test map.
+        inflation_radius: 0.005
+        cost_scaling_factor: 1.0
+      # Rolling window keeps only nearby costmap around the robot.
+      rolling_window: true
+      width: 2
+      height: 2
+      resolution: 0.05
+      # Approximate robot body radius in meters.
+      robot_radius: 0.14
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: false
+      robot_radius: 0.14
+      update_frequency: 5.0
+      publish_frequency: 5.0
+      # Global costmap combines saved map, live obstacles, and inflation.
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        # Required so late subscribers still receive the map.
+        map_subscribe_transient_local: true
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          obstacle_min_range: 0.12
+          clearing: true
+          marking: true
+          data_type: "LaserScan"
+          expected_update_rate: 0.0
+          observation_persistence: 0.0
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        # Keep global inflation very small for this compact room map.
+        inflation_radius: 0.005
+        cost_scaling_factor: 1.0
+      # Publishes complete global costmap for RViz/debugging.
+      always_send_full_costmap: true
+
+map_server:
+  ros__parameters:
+    use_sim_time: false
+    # Saved map used for localization and global planning.
+    yaml_filename: "/home/biswa/1.Code/robot_nav_config/maps/my_map.yaml"
+
+amcl:
+  ros__parameters:
+    use_sim_time: false
+    # Motion noise parameters for AMCL. Higher means AMCL trusts odom less.
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    # These frames must match URDF, odom_publisher.py, and Nav2.
+    base_frame_id: "base_link"
+    global_frame_id: "map"
+    odom_frame_id: "odom"
+    scan_topic: scan
+    # Number of laser beams and particles used for localization.
+    max_beams: 60
+    max_particles: 2000
+    min_particles: 500
+    # Differential motion model matches this 4WD skid/differential-style base.
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    # Minimum motion before AMCL updates from laser data.
+    update_min_a: 0.1
+    update_min_d: 0.1
+    resample_interval: 1
+    # Allow small TF timing delays between map, odom, and base_link.
+    transform_tolerance: 1.0
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
+    # Lidar range limits AMCL should consider.
+    laser_max_range: 3.5
+    laser_min_range: 0.1
+    # Initial pose is provided here at startup, but RViz 2D Pose Estimate is better.
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0

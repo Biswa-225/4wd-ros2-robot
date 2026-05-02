@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<robot name="my_4wd_robot">
+
+  <!--
+    Simple custom URDF used for navigation visualization/testing.
+    This file uses primitive boxes/cylinders instead of detailed STL meshes,
+    so it is easier to understand and faster to load in RViz.
+
+    Important frames:
+      base_link: robot body center
+      wheel links: visual wheel positions
+      base_laser: LD19 LaserScan frame
+  -->
+
+  <!-- BASE LINK: 200x200x95mm chassis box. -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.200 0.200 0.095"/>
+      </geometry>
+      <origin xyz="0 0 0.0475" rpy="0 0 0"/>
+      <material name="blue">
+        <color rgba="0 0.5 1 0.8"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.200 0.200 0.095"/>
+      </geometry>
+      <origin xyz="0 0 0.0475" rpy="0 0 0"/>
+    </collision>
+  </link>
+
+  <!-- FRONT LEFT WHEEL: radius=0.04m, width=0.03m. -->
+  <link name="front_left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_left_wheel"/>
+    <!-- x=front offset, y=left offset, z=wheel center height relative to base. -->
+    <origin xyz="0.075 0.0625 -0.0075" rpy="1.5708 0 0"/>
+    <!-- Continuous joint lets RViz show this as a spinning wheel. -->
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- FRONT RIGHT WHEEL -->
+  <link name="front_right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0.075 -0.0625 -0.0075" rpy="1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- REAR LEFT WHEEL -->
+  <link name="rear_left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="rear_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel"/>
+    <origin xyz="-0.075 0.0625 -0.0075" rpy="1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- REAR RIGHT WHEEL -->
+  <link name="rear_right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.04" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="rear_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel"/>
+    <origin xyz="-0.075 -0.0625 -0.0075" rpy="1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- LIDAR — LD19 -->
+  <link name="base_laser">
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.04"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.035" length="0.04"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_laser"/>
+    <!-- Fixed transform from base_link to LD19 LiDAR frame. -->
+    <!-- x=55mm forward, y=0 center, z=130mm from ground. -->
+    <origin xyz="0.055 0 0.130" rpy="0 0 0"/>
+  </joint>
+
+</robot>

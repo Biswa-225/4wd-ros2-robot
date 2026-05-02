@@ -1,0 +1,15 @@
+# Backup/older occupancy grid metadata loaded by Nav2 map_server.
+# Keep this file as a known-good reference map origin.
+image: my_map.pgm
+# trinary means each pixel becomes free, occupied, or unknown.
+mode: trinary
+# meters per pixel/cell.
+resolution: 0.05
+# map frame pose of the image origin: [x, y, yaw].
+origin: [-0.854, -2.61, 0]
+# 0 keeps normal black/white meaning from the PGM.
+negate: 0
+# Pixels darker than this threshold become occupied.
+occupied_thresh: 0.65
+# Pixels lighter than this threshold become free.
+free_thresh: 0.25
